@@ -127,8 +127,8 @@ De volgende status codes zijn ook afgesproken met de frontend die de backend ter
 
 | Code | Reden                                                                                                                    |
 |------|--------------------------------------------------------------------------------------------------------------------------|
-| 200  | (OK) Dit is als een GET, POST, PUT of een HEAD request zonder problemen is verlopen.                                     |
-| 204  | (No Content) Dit is als een DELETE request met success is uitgevoerd.                                                    |
+| 200  | (OK) Dit is als een GET, POST of een HEAD request zonder problemen is verlopen.                                          |
+| 204  | (No Content) Dit is als een PUT of DELETE request met success is uitgevoerd.                                             |
 | 400  | (Bad Request) Data meegeleverd in het request bevat fouten waardoor het request niet afgehandeld kan worden.             |
 | 403  | (Forbidden) De gebruiker probeert een actie uit te voeren of data op te halen, waar de gebruiker geen toegang tot heeft. |
 | 404  | (Not Found) Data dat opgevraagd of bewerkt wordt door de gebruiker is niet gevonden in het systeem.                      |
@@ -141,5 +141,7 @@ waar je events op kunt zetten. Voor het aanmaken van een account voor gebruikers
 informatie nodig:
 - De naam van de gebruiker.
 - Wat voorgebruiker het is: leerkracht, administratief medewerker, systeembeheerder, leerling of rechtmatige verzorger.
-- Geboortedatum (leerlingen beneden een bepaalde leeftijd krijgen een apart inlogsysteem, gebaseerd op plaatjes).
+- Geboortedatum (leerlingen beneden een bepaalde leeftijd krijgen een apart inlogsysteem, gebaseerd op plaatjes, of een pincode).
 - Een emailadres om een bevestigingsmail naar toe te sturen. 
+
+

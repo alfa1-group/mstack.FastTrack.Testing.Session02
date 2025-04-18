@@ -26,12 +26,26 @@ Het is nog niet nodig om ook al de body van de testen te programmeren. Daarnaast
 je testen ook in een enkele class gooien. De naam van de testclass is nu nog niet van belang.
 Die zaken komen allemaal bij de volgende opdrachten aanbod. 
 
+Bij het opstellen van de testmethode naam moet je er op letten dat het duidelijk is voor
+een ander wat de precondities zijn, welke actie de trigger is voor de test, en wat er
+uiteindelijk verwacht wordt om de test te doen slagen.
+
+**Belangrijk**: Meestal wordt de methodenaam gebruikt voor de volledige beschrijving. Je bent
+dan wel gebonden aan de beperkingen voor functienamen, wat de leesbaarheid niet ten goede
+komt. Het voordeel is dat deze namen in het verlengde van classnamen gebruikt kunnen worden.
+Dezelfde stijl zorgt ervoor dat de tekst binnen de boom als een geheel gelezen kan worden.
+
+Je kan ook `displayName` zetten op een test, wat een parameter van het type `string` aan 
+de attribuut voor de test meegegeven kan worden. Het voordeel van deze aanpak is dat punctuatie
+en spatie gebruik in de tekst opgenomen kunnen worden, wat het scenario veel leesbaarder maakt.
+Maar dit kan vaak niet gedaan worden voor de classes, folders en namespaces.
+
+### .Net C#
 Het testproject is opgezet met MSTest. Je zal dus je classes en functies moeten decoreren
 met respectievelijk de `TestClass` en `TestMethod` attributen. Zodat ze zichtbaar zijn in
 de TestExplorer. Bijvoorbeeld:
 
 ```csharp
-
 [TestClass]
 public class MyTests
 {
@@ -51,25 +65,9 @@ public class MyTests
         
     }
 }
-
 ```
 
-
-Bij het opstellen van de test methode naam moet je er op letten dat het duidelijk is voor
-een ander wat de preconditions zijn, welke actie de trigger is voor de test, en wat er
-uiteindelijk verwacht wordt om de test te doen slagen.
-
-**Belangrijk**: Meestal wordt de methodenaam gebruikt voor de volledige beschrijving. Je bent
-dan wel gebonden aan de beperkingen voor functienamen, wat de leesbaarheid niet ten goede
-komt. Het voordeel is dat deze namen in het verlengde van classnamen gebruikt kunnen worden.
-Dezelfde stijl zorgt ervoor dat de tekst binnen de boom als een geheel gelezen kan worden in
-de Test Explorer.
-
-Je kan ook `displayName` zetten op een test, wat een parameter van het type `string` aan 
-`TestMethod` meegegeven kan worden. Het voordeel van deze aanpak is dat punctuatie en spatie
-gebruik in de tekst opgenomen kan worden, wat het scenario veel leesbaarder maakt. Maar dit
-kan niet gedaan worden voor de classes, folders en namespaces.
-
+### Java
 
 
 ## Opdracht 2
@@ -81,6 +79,7 @@ nodig heeft om tot het gewenste resultaat te komen. In het AAA patroon gaat het 
 Wederom hoef je geen zorgen te maken over het schoonhouden van je code en kopieer de regels
 code naar hartelust van de ene naar de andere body. Het refactoren komt later nog aanbod.
 
+**C# .Net**
 ```csharp
 
 [TestMethod]
@@ -136,6 +135,10 @@ public void <MyTestMethodName>()
 
     // Assert
 }
+```
+
+**Java**
+```java
 
 ```
 
@@ -147,11 +150,11 @@ een unit. Bedenk dat een exception ook een vorm van input is.
 Als de test bij een mock begint dan is het belangrijk dat bij de aanroep je action ook valide
 input meegegeven wordt, waarmee de mock bereikt kan worden. Als de test bij een mock eindigt
 en het resultaat van de mock is nodig om de executie te laten eindigen dan is het belangrijk
-om ook hier een valide waarde op te geven. Ook al zijn deze input niet van belang voor de 
+om ook hier een valide waarde op te geven. Ook al zijn deze inputs niet van belang voor de 
 verificatie stap van de test. Het is wel belangrijk voor een geldige executie van de test.
 
-*Let op:* Als je nog tijd over hebt ga dan terug naar opdracht 1 en maak extra scenario's
-aan waar je de input voor kan definiëren.
+*Let op:* Als je nog tijd over hebt ga dan terug naar de vorige opdracht en maak extra 
+scenario's aan waar je de input voor kan definiëren.
 
 
 
@@ -163,8 +166,8 @@ AAA patroon houdt dit de `Assert` stap in.
 Wederom hoef je geen zorgen te maken over het schoonhouden van je code en kopieer de regels
 code naar hartelust van de ene naar de andere body. Het refactoren komt later nog aanbod.
 
+**C# .Net**
 ```csharp
-
 [TestMethod]
 public void <MyTestMethodName>()
 {
@@ -224,6 +227,10 @@ public void <MyTestMethodName>()
     // Assert
     Assert.AreEqual("Expected error message", actual.Message);
 }
+```
+
+**Java**
+```java
 
 ```
 
@@ -250,8 +257,8 @@ testscenario's blijft alleen de code over voor het definiëren van de inputs die
 uniek zijn aan de test scenario, de aanroep van de act, en het verifiëren van de relevante
 output van de testscenario.
 
+**C# .Net**
 ```csharp
-
 [TestClass]
 public class <MyTestClass>
 {
@@ -285,6 +292,10 @@ public class <MyTestClass>
         _sut = provider.GetRequiredService<IMyProduction>();
     }
 }
+```
+
+**Java**
+```java
 
 ```
 
