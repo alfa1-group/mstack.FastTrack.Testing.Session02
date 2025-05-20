@@ -68,6 +68,37 @@ public class MyTests
 ```
 
 ### Java
+Voor het uitvoeren van de testen in Java moet een Java SDK geinstalleerd zijn. Minimaal versie 17. Voor
+Windows kan deze hier gevonden worden: https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html.
+Verder moet het build programma maven geinstalleerd zijn. Deze kan voor Windows hier gevonden worden: https://maven.apache.org/download.cgi.
+Als IDE kan Intellij van Jetbrains gebruikt worden: https://www.jetbrains.com/idea/download/?section=windows. Selecteer de comunity versie.
+Alle testen worden uitgevoerd met het Junit5 framework
+Een geinitieerd project kan gevonden in de repository, Het pad is .../java/testmodule2
+Het test project is opgezet met maven. Een goed voorbeeld:
+
+```java
+package com.alfa1;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+public class MyTests {
+
+    @Test
+    void myFullTestMethodName() { 
+        // Test implementation goes here
+    }
+
+    @Test
+    @DisplayName("""
+            Given my situation,
+            when I take action,
+            then I expect result
+            """)
+    void mySimpleTestMethodName() { 
+        // Test implementation goes here
+    }
+}
+```
 
 
 ## Opdracht 2
@@ -137,8 +168,120 @@ public void <MyTestMethodName>()
 }
 ```
 
-**Java**
+
+### Java
+Een aantal constructen die `MSTest` beschikbaar stelt zijn niet standaard beschikbaar in Java. 
+Daarom is er in de repository extra code aanwezig om deze te simuleren. Onderstaande code gebruit het `mock` framework in combinatie met het Junit5 framework om de testen uit te voeren.
+
 ```java
+@ExtendWith(MockitoExtension.class) // Integrates Mockito with JUnit 5
+@DisplayName("SystemUnderTest Tests")
+public class MyTests {
+
+    @Mock
+    private MyRepository repositoryMock;
+
+    private SystemUnderTest sut;
+
+    // ArgumentCaptor can be useful for capturing arguments passed to mocks
+    @Captor
+    private ArgumentCaptor<UUID> uuidArgumentCaptor;
+
+    @BeforeEach
+    void setUp() {
+        sut = new SystemUnderTest(repositoryMock);
+    }
+
+    @Test
+    @DisplayName("should successfully process action when repository provides valid data")
+    void takeActionSuccessfullyWhenRepositoryReturnsValidData() {
+        // Arrange
+        MyInput validInput = MyInput.builder().name("validName").build();
+        MyOutput expectedRepositoryOutput = MyOutput.builder().value("valid data from repo").build();
+
+        // Mocking the Get method for any UUID
+        when(repositoryMock.get(any(UUID.class))).thenReturn(expectedRepositoryOutput);
+
+        // Act
+        sut.takeAction(validInput);
+
+        // Assert
+        // Verify that the repository's get method was called once
+        verify(repositoryMock, times(1)).get(any(UUID.class));
+
+        // Verify internal state of SUT if it changes based on repository output
+        assertEquals(expectedRepositoryOutput, sut.getLastProcessedOutput(),
+                "SUT should store the output received from the repository.");
+    }
+
+
+    // Method source for parameterized test data
+    static Stream<Arguments> stringInputScenariosForMockResponse() {
+        return Stream.of(
+                arguments("null value in response", null),
+                arguments("empty value in response", ""),
+                arguments("whitespace value in response", "   "),
+                arguments("line break value in response", "\n"),
+                arguments("meaningful value in response", "specific data")
+        );
+    }
+
+    @ParameterizedTest(name = "[{index}] {0}")
+    @MethodSource("stringInputScenariosForMockResponse")
+    @DisplayName("should handle various responses from repository")
+    void takeActionWithVariousRepositoryResponses(String scenarioDescription, String valueForMockedResponse) {
+        // Arrange
+        MyOutput mockedRepositoryResponse = RepositoryResponseBuilder.validState()
+                .withValue(valueForMockedResponse)
+                .build();
+
+        when(repositoryMock.get(any(UUID.class))).thenReturn(mockedRepositoryResponse);
+
+        MyInput fixedActionInput = MyInput.builder().name("consistentSUTInput").build();
+
+        // Act
+        sut.takeAction(fixedActionInput);
+
+        // Assert
+        verify(repositoryMock).get(any(UUID.class)); // Verify interaction
+
+        // Assert the SUT's state based on the mocked response
+        assertEquals(mockedRepositoryResponse, sut.getLastProcessedOutput(),
+                "SUT's last processed output should match the mock's response for scenario: " + scenarioDescription);
+
+        if (valueForMockedResponse == null) {
+            assertNull(sut.getLastProcessedOutput().getValue(), "Value within output should be null if mock returned it as null");
+        }
+    }
+
+
+    @Test
+    @DisplayName("should correctly propagate or handle exceptions from repository")
+    void takeActionHandlesRepositoryException() {
+        // Arrange
+        MyInput actionInput = MyInput.builder().name("inputLeadingToException").build();
+        RuntimeException repositoryException = new RuntimeException("Database connection failed");
+
+        when(repositoryMock.get(any(UUID.class))).thenThrow(repositoryException);
+
+        // Act & Assert
+        RuntimeException thrownException = assertThrows(RuntimeException.class, () -> {
+            sut.takeAction(actionInput);
+        }, "A RuntimeException should be thrown when the repository fails.");
+
+        // Assert that the thrown exception is the one we configured the mock with
+        assertEquals(repositoryException.getMessage(), thrownException.getMessage(),
+                "The exception message should match the repository's error.");
+        
+
+        // Verify the mock was indeed called
+        verify(repositoryMock).get(any(UUID.class));
+
+        // Optionally, assert that no data was processed if an exception occurred early
+        assertNull(sut.getLastProcessedOutput(),
+                "Last processed output should be null if an exception occurred during repository interaction.");
+    }
+}
 
 ```
 
@@ -230,7 +373,109 @@ public void <MyTestMethodName>()
 ```
 
 **Java**
+Zoals bij opdracht 2. zijn de hulpclasses aangemaakt. Waar mogelijk gebruikt de test de hulp classes 
+van opdracht 2. Alleen die classesa die aangepast worden voor deze extra tests zijn aangepast in opdracht3.
+
 ```java
+@ExtendWith(MockitoExtension.class)
+@DisplayName("SystemUnderTest Advanced Scenarios")
+public class MyTests {
+
+    @Mock
+    private MyRepository repositoryMock;
+
+    private SystemUnderTest sut;
+
+    @Captor
+    private ArgumentCaptor<String> stringArgumentCaptor; // For capturing string arguments
+
+    @BeforeEach
+    void setUp() {
+        sut = new SystemUnderTest(repositoryMock);
+    }
+
+    @Test
+    @DisplayName("getStringForNumber should return 'bob' when input is 6")
+    void getStringForNumber_givenInput6_returnsBob() {
+        // Arrange
+        String expectedValue = "bob";
+        int inputNumber = 6;
+        String assertionMessage = "The SUT should return 'bob' for the number 6, as per the defined sequence.";
+
+        // Act
+        String actualValue = sut.getStringForNumber(inputNumber);
+
+        // Assert
+        assertEquals(expectedValue, actualValue, assertionMessage);
+    }
+
+    // Data provider method for the parameterized test verifying mock interaction
+    static Stream<Arguments> numericInputToRepositoryKeySource() {
+        return Stream.of(
+                arguments(1, "Jan", "Input 1 should map to key 'Jan'"),
+                arguments(42, "DeepThought", "Input 42 should map to key 'DeepThought'")
+        );
+    }
+
+    @ParameterizedTest(name = "[{index}] {2}") // Uses the 3rd argument from MethodSource as test name
+    @MethodSource("numericInputToRepositoryKeySource")
+    @DisplayName("processNumericInput: verifies correct key is passed to repository")
+    void processNumericInput_whenCalled_passesCorrectlyDerivedKeyToRepository(
+            int numericInput, String expectedKeyForRepository, String testCaseDescription) {
+        // Arrange
+        // Mock repository.get(String) to return a dummy MyOutput, as its return value isn't asserted here.
+        MyOutput dummyOutput = MyOutput.builder().value("irrelevant mock response").build();
+        when(repositoryMock.get(anyString())).thenReturn(dummyOutput);
+
+        // Act
+        sut.processNumericInput(numericInput);
+
+        // Assert
+        // Verify that repositoryMock.get was called once with the expected string argument.
+        verify(repositoryMock).get(eq(expectedKeyForRepository));
+    }
+
+    // Data provider for the test that captures and asserts the argument value
+    // Can reuse numericInputToRepositoryKeySource if arguments are identical,
+    // or create a new one if more/different data is needed.
+    // For this example, we can reuse it.
+
+    @ParameterizedTest(name = "[{index}] {2}")
+    @MethodSource("numericInputToRepositoryKeySource") // Reusing the same data source
+    @DisplayName("processNumericInput: captures and verifies argument passed to repository")
+    void processNumericInput_whenCalled_passesCorrectArgumentToRepository_captured(
+            int numericInput, String expectedCapturedValue, String testCaseDescription) {
+
+        // Arrange
+        MyOutput dummyOutput = MyOutput.builder().value("any response").build();
+        when(repositoryMock.get(anyString())).thenReturn(dummyOutput);
+
+        // Act
+        sut.processNumericInput(numericInput);
+
+        // Assert
+        verify(repositoryMock).get(stringArgumentCaptor.capture());
+        String actualCapturedValue = stringArgumentCaptor.getValue();
+
+        assertEquals(expectedCapturedValue, actualCapturedValue,
+                "The argument passed to repository.get() should match the expected derived value.");
+    }
+
+    @Test
+    @DisplayName("triggerErrorAction should throw IllegalStateException with the expected message")
+    void triggerErrorAction_whenInvoked_throwsIllegalStateExceptionWithCorrectMessage() {
+        // Arrange
+        String expectedErrorMessage = "Expected error message";
+
+        // Act & Assert
+        IllegalStateException thrownException = assertThrows(IllegalStateException.class, () -> {
+            sut.triggerErrorAction();
+        }, "Expected triggerErrorAction to throw an IllegalStateException.");
+
+        assertEquals(expectedErrorMessage, thrownException.getMessage(),
+                "The exception message should match the defined error.");
+    }
+}
 
 ```
 
@@ -295,9 +540,7 @@ public class <MyTestClass>
 ```
 
 **Java**
-```java
-
-```
+Zoals opdracht 3 aantoont is deze scheiding al gemaakt in de hulp classes. Hierdoor zijn de effectieve testen al klein 
 
 Ben je hier snel mee klaar dan mag je terug gaan naar de vorige opdracht om nog meer testen
 erbij te maken.
